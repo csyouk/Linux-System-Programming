@@ -1,0 +1,8 @@
+License
+=======
+
+-	GPL
+
+-	LGPL
+
+-	BSD
