@@ -25,6 +25,7 @@ Makefile
 -	컴파일 과정을 자동화 시키는 설정 파일.
 
 > target : 의존성 파일
+>   
 > [tab]  command
 
 -	다음은 Makefile 파일의 예이다.
@@ -32,7 +33,7 @@ Makefile
 	- make
 	- make main.o
 	- make func.o
-	
+
 ```cmake
 
 TARGET = hello
