@@ -25,7 +25,7 @@ Makefile
 -	컴파일 과정을 자동화 시키는 설정 파일.
 
 > target : 의존성 파일
->   
+>
 > [tab]  command
 
 -	다음은 Makefile 파일의 예이다.
@@ -34,21 +34,28 @@ Makefile
 	- make main.o
 	- make func.o
 
+- 다음 기호들을 알아야 해석이 가능하다.
+	- **$*** : Target 이름에서 확장자를 제외한 이름
+	- **$@** : Target 이름
+	- **$<** : 의존성 파일 중 첫 번째 파일
+	- **@** 를 붙이면 터미널로 결과만 출력된다.(명령이 출력되는 것이 아니다.)
+		- **@echo "hello world"** ==> **echo "hello world"**
+
 ```cmake
 
-TARGET = hello
+TARGET = hello    // makefile 에서 변수 선언
 OBJS = main.o func.o
 CC = arm-none-linux-gnueabi-gcc
 CFLAGS = -c
 
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJS)     // makefile 에서 변수 사용
 	$(CC) -o $@ $(OBJS)
 main.o: main.c
 	$(CC) $(CFLAGS) $<
 func.o: func.c
 	$(CC) $(CFLAGS) $<
 clean:
-	@rm -f $(TARGET) $(OBJS)
+	@rm -f $(TARGET) $(OBJS)        // -f 옵션 : force(오류 메세지 방지)
 	@echo "all objects all deleted.."
 
 ```
