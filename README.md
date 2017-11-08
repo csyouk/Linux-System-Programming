@@ -9,5 +9,4 @@ Linux System Programming
 -	[kernel](./kernel.md)
 -	[gcc / Makefile](./makefile.md)
 
--------------------
 - [Process](./process.md)

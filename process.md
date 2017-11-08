@@ -4,7 +4,7 @@
 - 리눅스에서 프로세스를 실행시키기 위해서는 반드시 **부모 프로세스** 가 필요하다.
 - 모든 프로세스는 부모가 필요하다.
 
-#### 프로세스 목록 보기
+### 프로세스 목록 보기
 - `ps -ef`
 - 다음은 **ps -ef**의 실행결과를 나타낸 것이다.
   - UID : User ID
@@ -18,14 +18,14 @@
 
 
 ```bash
-UID        PID  PPID  C STIME TTY     TIME     CMD
-root         1     0  0 11월07 ?      00:00:01 /sbin/init
-root         2     0  0 11월07 ?      00:00:00 [kthreadd]
-root         3     2  0 11월07 ?      00:01:33 [ksoftirqd/0]
-root         4     2  0 11월07 ?      00:00:00 [kworker/0:0]
-user      2296  2288  0 11월07 pts/1  00:00:01 bash
-user      3906  2296  0 09:15 pts/1    00:00:00 ps -ef
-user      2288  1611  0 11월07 ?      00:00:15 gnome-terminal
+UID        PID  PPID  C   STIME     TTY       TIME        CMD
+root         1     0  0   11월07    ?         00:00:01    /sbin/init
+root         2     0  0   11월07    ?         00:00:00    [kthreadd]
+root         3     2  0   11월07    ?         00:01:33    [ksoftirqd/0]
+root         4     2  0   11월07    ?         00:00:00    [kworker/0:0]
+user      2296  2288  0   11월07    pts/1     00:00:01    bash
+user      3906  2296  0   09:15     pts/1     00:00:00    ps -ef
+user      2288  1611  0   11월07    ?         00:00:15    gnome-terminal
 
 ```
 
@@ -35,7 +35,7 @@ user      2288  1611  0 11월07 ?      00:00:15 gnome-terminal
   - **/maps** : 메모리 정보.
 
 
-#### 주소공간은 프로세스마다 독립적이다.
+### 주소공간은 프로세스마다 독립적이다.
 - 동일한 라이브러리이지만, 주소공간의 시작 주소가 다르다.
 - 프로세스는 VA(virtual address)를 통해서 RAM을 온전히 자신이 다 쓴다고 생각한다.
   - 실제로 4G RAM을 운영하는 방식이, 1G는 kernel이 3G는 process가 올라간다.
@@ -77,7 +77,7 @@ user      2288  1611  0 11월07 ?      00:00:15 gnome-terminal
 
 --------------
 
-#### 프로세스 상태 확인
+### 프로세스 상태 확인
 ![Process State](./img/Process_states.svg)
 - `ps -ax`
 - **프로세스의 상태는 크게 3가지로 나눈다. 물론 이 상태는 운영체제마다 상태 정의가 다르다.**
@@ -102,7 +102,7 @@ user      2288  1611  0 11월07 ?      00:00:15 gnome-terminal
 
 
 -------------
-#### 프로세스 생성 (master-slave 관계 아닌 경우.)
+### 프로세스 생성 (master-slave 관계 아닌 경우.)
 - `system()`
 - C 프로그램에서 프로세스를 생성하는 방법을 알아본다.
 - 프로세스가 생성되기 위해서는 부모 프로세스를 복재한 다음, 바꿔서 실행하는 일이다.
@@ -163,7 +163,7 @@ command = sleep 3 &
 
 
 ------------
-#### 프로세스의 교체
+### 프로세스의 교체
 - `exec()`
   - `execl()`
   - `execlp()`
@@ -251,7 +251,7 @@ int main(int argc, char **argv)
 ```
 
 ------------
-#### 프로세스 생성 (master-slave 관계)
+### 프로세스 생성 (master-slave 관계)
 - `fork()`
 - fork함수는 argument가 없다.
 - fork함수를 호출하면 OS가 부모 프로세스의 code + data + heap + stack 등, 메모리를 복제해서 실행시킨다.
