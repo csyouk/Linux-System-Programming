@@ -102,7 +102,7 @@ user      2288  1611  0 11월07 ?      00:00:15 gnome-terminal
 
 
 -------------
-#### 프로세스 생성
+#### 프로세스 생성 (master-slave 관계 아닌 경우.)
 - `system()`
 - C 프로그램에서 프로세스를 생성하는 방법을 알아본다.
 - 프로세스가 생성되기 위해서는 부모 프로세스를 복재한 다음, 바꿔서 실행하는 일이다.
@@ -186,14 +186,19 @@ ret = execlp("ls", "ls", "-l", NULL);     // path에서 경로를 찾아서 실�
 pid_t pid;
 int main(int argc, char **argv)
 {
-        int i, ret;
-        printf("[%d] running %s\n", pid = getpid(), argv[0]);
-        ret = execl("/bin/ls", "ls", "-l", NULL);
-        printf("[%d] ret = %d\n", pid, ret);
-        printf("[%d] terminted\n", pid);
-        return EXIT_SUCCESS;
+    int i, ret;
+    printf("[%d] running %s\n", pid = getpid(), argv[0]);
+    ret = execl("/bin/ls", "ls", "-l", NULL);
+    printf("[%d] ret = %d\n", pid, ret);
+    printf("[%d] terminted\n", pid);
+    return EXIT_SUCCESS;
 }
-
+[1152] running ./exec
+-rwxr-xr-x    1 root     root          5747 Nov  7  2017 Hello_ARM
+-rwxr-xr-x    1 root     root          6099 Nov  7  2017 a.out
+-rwxr-xr-x    1 root     root          6149 Nov  8  2017 exec
+-rwxr-xr-x    1 root     root          6099 Nov  7  2017 hello
+-rwxr-xr-x    1 root     root          6530 Nov  8  2017 system
 ```
 
 
@@ -207,17 +212,16 @@ pid_t pid;
 
 int main(int argc, char **argv)
 {
-        int i, ret;
-
-        printf("[%d] running %s\n", pid = getpid(), argv[0]);
-
-        ret = execl("ls", "ls", "-l", NULL);
-        printf("[%d] ret = %d\n", pid, ret);
-
-        printf("[%d] terminted\n", pid);
-
-        return EXIT_SUCCESS;
+    int i, ret;
+    printf("[%d] running %s\n", pid = getpid(), argv[0]);
+    ret = execl("ls", "ls", "-l", NULL);
+    printf("[%d] ret = %d\n", pid, ret);
+    printf("[%d] terminted\n", pid);
+    return EXIT_SUCCESS;
 }
+[1203] running ./exec
+[1203] ret = -1
+[1203] terminted
 ```
 
 
@@ -231,16 +235,87 @@ pid_t pid;
 
 int main(int argc, char **argv)
 {
-        int i, ret;
-
-        printf("[%d] running %s\n", pid = getpid(), argv[0]);
-
-        ret = execlp("ls", "ls", "-l", NULL);
-
-        printf("[%d] ret = %d\n", pid, ret);
-
-        printf("[%d] terminted\n", pid);
-
-        return EXIT_SUCCESS;
+    int i, ret;
+    printf("[%d] running %s\n", pid = getpid(), argv[0]);
+    ret = execlp("ls", "ls", "-l", NULL);
+    printf("[%d] ret = %d\n", pid, ret);
+    printf("[%d] terminted\n", pid);
+    return EXIT_SUCCESS;
 }
+[1152] running ./exec
+-rwxr-xr-x    1 root     root          5747 Nov  7  2017 Hello_ARM
+-rwxr-xr-x    1 root     root          6099 Nov  7  2017 a.out
+-rwxr-xr-x    1 root     root          6149 Nov  8  2017 exec
+-rwxr-xr-x    1 root     root          6099 Nov  7  2017 hello
+-rwxr-xr-x    1 root     root          6530 Nov  8  2017 system
+```
+
+------------
+#### 프로세스 생성 (master-slave 관계)
+- `fork()`
+- fork함수는 argument가 없다.
+- fork함수는 **자신을 복제** 하여 자식 프로세스를 생성한다.
+  - system함수와의 차이점은, fork함수는 fork함수를 호출한 프로세스를 복제한다는 점이다.
+  - system함수는 부모 프로세스와 동일하지 않게 생성할 수 있었다.
+
+- 성공 시,
+  - 부모 프로세스는 자식 프로세스의 PID 리턴.
+  - 자식 프로세스는 0 리턴.
+
+- 실패 시,
+  - 부모 프로세스는 errno 설정 후 -1 리턴
+  - 실패시 자식 프로세스는 생성되지 않음.
+
+- 자식 프로세스의 PPID는 부모의 PID와 동일하다.
+- 자식 프로세스는 자신만의 고유 PID를 갖는다.
+
+- 다음은 fork함수의 예제이다.
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+
+pid_t pid;
+
+int main(int argc, char **argv)
+{
+    pid_t pid_temp;
+    char *msg = "none";
+
+    printf("[%d] running %s\n", pid = getpid(), argv[0]);
+
+    pid_temp = fork();
+
+    // 에러 처리(메모리 부족 시)
+    if(pid_temp == -1) {
+            printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
+            return EXIT_FAILURE;
+    }
+    // 자식 프로세스는 이 곳으로 들어온다.
+    else if(pid_temp == 0) {
+            pid = getpid();
+            msg = "this is child";
+            sleep(3);
+    }
+    // 부모 프로세스는 이 곳으로 들어온다.
+    else {
+            msg = "this is parent";
+            sleep(5);
+    }
+
+    // 공통 부분.
+    printf("[%d] pid_temp = %d, msg = %s, ppid = %d\n", pid, pid_temp, msg, getppid());
+    printf("[%d] terminted\n", pid);
+
+    return EXIT_SUCCESS;
+}
+
+[1160] running ./fork
+[1161] pid_temp = 0, msg = this is child, ppid = 1160
+[1161] terminted
+[1160] pid_temp = 1161, msg = this is parent, ppid = 1147
+[1160] terminted
 ```
