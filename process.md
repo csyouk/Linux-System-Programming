@@ -254,6 +254,8 @@ int main(int argc, char **argv)
 #### 프로세스 생성 (master-slave 관계)
 - `fork()`
 - fork함수는 argument가 없다.
+- fork함수를 호출하면 OS가 부모 프로세스의 code + data + heap + stack 등, 메모리를 복제해서 실행시킨다.
+  - fork함수의 리턴값은 OS kernel에서 지정한다.
 - fork함수는 **자신을 복제** 하여 자식 프로세스를 생성한다.
   - system함수와의 차이점은, fork함수는 fork함수를 호출한 프로세스를 복제한다는 점이다.
   - system함수는 부모 프로세스와 동일하지 않게 생성할 수 있었다.
@@ -282,35 +284,37 @@ pid_t pid;
 
 int main(int argc, char **argv)
 {
-    pid_t pid_temp;
-    char *msg = "none";
+  pid_t pid_temp;
+  char *msg = "none";
 
-    printf("[%d] running %s\n", pid = getpid(), argv[0]);
+  printf("[%d] running %s\n", pid = getpid(), argv[0]);
 
-    pid_temp = fork();
+  pid_temp = fork();
 
-    // 에러 처리(메모리 부족 시)
-    if(pid_temp == -1) {
-            printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
-            return EXIT_FAILURE;
-    }
-    // 자식 프로세스는 이 곳으로 들어온다.
-    else if(pid_temp == 0) {
-            pid = getpid();
-            msg = "this is child";
-            sleep(3);
-    }
-    // 부모 프로세스는 이 곳으로 들어온다.
-    else {
-            msg = "this is parent";
-            sleep(5);
-    }
+  // 에러 처리(메모리 부족 시)
+  if(pid_temp == -1) {
+    // 자식 프로세스 생성 실패시, 실패 줄수를 출력.
+    // errno를 가지고, 해당 줄을 찍는다.
+    printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
+    return EXIT_FAILURE;
+  }
+  // 자식 프로세스는 이 곳으로 들어온다.
+  else if(pid_temp == 0) {
+    pid = getpid();
+    msg = "this is child";
+    sleep(3);
+  }
+  // 부모 프로세스는 이 곳으로 들어온다.
+  else {
+    msg = "this is parent";
+    sleep(5);
+  }
 
-    // 공통 부분.
-    printf("[%d] pid_temp = %d, msg = %s, ppid = %d\n", pid, pid_temp, msg, getppid());
-    printf("[%d] terminted\n", pid);
+  // 공통 부분.
+  printf("[%d] pid_temp = %d, msg = %s, ppid = %d\n", pid, pid_temp, msg, getppid());
+  printf("[%d] terminted\n", pid);
 
-    return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
 
 [1160] running ./fork
