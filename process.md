@@ -108,7 +108,7 @@ user      2288  1611  0   11월07    ?         00:00:15    gnome-terminal
 - 프로세스가 생성되기 위해서는 부모 프로세스를 복재한 다음, 바꿔서 실행하는 일이다.
 - 즉, 프로세스가 새로 생성되는 일은 매우 비효율 적인 일이다.
 
-- **int system(const char *command)**
+- **int system(const char \*command)**
   - 실패시 -1, 그 외에는 command return status를 리턴.
   - return status는 16비트 구성되어 있고, 해석이 필요하다.
     - exit code 8비트 + 시그널 번호 8비트.
