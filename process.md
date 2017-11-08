@@ -2,7 +2,11 @@
 - 프로세스는 현재 실행중인 하나의 **프로그램** 이다.
 - 리눅스에서 프로세스를 실행시키기 위해서는 반드시 **부모 프로세스** 가 필요하다.
 - 모든 프로세스는 부모가 필요하다.
-
+---------------
+- 생성 : fork()
+- 종료 : exit()
+- 대기 : wait(), waitpid()
+- 교체 : exec()
 ---------------
 ### 프로세스 목록 보기
 - `ps -ef`
@@ -167,7 +171,9 @@ command = sleep 3 &
 - `exec()`
   - `execl()`
   - `execlp()`
+- The **exec()** family of functions replaces the current process image with a new process image.
 - 현재 프로세스를 새로운 프로세스로 교체한다.
+- **새로운 프로세스를 만드는 것이 아니다!!!**
 - 복제 비용이 생기지 않기 때문에, 자원관리에 좀 더 효율적일 수 있다.
 
 ```c
@@ -329,11 +335,17 @@ int main(int argc, char **argv)
 - `wait()`
 - `pid_t wait(int *status)`
   - 기능 : 자식 프로세스 중 아무나 종료되기를 기다림.
-  - 리턴 : 성공 시 종료된 자식 프로세스의 PID를, 오류 시, errno 설정 후 -1을 리턴.
+  - 리턴 :
+  - 성공 시(=자식 프로세스가 성공적으로 종료되었다.) 종료된 자식 프로세스의 PID.
+  - 오류 시, errno 설정 후 -1을 리턴.
 
 - `pid_t waitpid(pid_t pid, int * status, int options)`
   - 기능 : 특정 PID를 가진 자식 프로세스의 종료를 기다림.
-  - 리턴 : 성공 시 종료된 자식 프로세스의 PID를 **WNOHANG** 을 사용했는데 자식 프로세스가 종료되지 않은 경우 0을, 에러시 errno 설정 후 -1을 리턴.
+  - 리턴 :
+    - 성공 시 종료된 자식 프로세스의 PID리턴.
+    - **WNOHANG** 을 사용했는데 자식 프로세스가 종료되지 않은 경우 0 리턴.
+    - 에러시 errno 설정 후 -1을 리턴.
+  - **WNOHANG** : 매크로 상수
 
 ```c
 #include <stdio.h>
@@ -342,6 +354,146 @@ int main(int argc, char **argv)
 #include <errno.h>
 #include <string.h>
 #include <sys/wait.h>
+
+pid_t pid;
+
+int main(int argc, char **argv)
+{
+  pid_t pid_temp;
+  int i;
+  char *msg = "none";
+
+  printf("[%d] running %s\n", pid = getpid(), argv[0]);
+
+  pid_temp = fork();
+
+  if(pid_temp == -1) {
+    printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
+    return EXIT_FAILURE;
+  }
+  else if(pid_temp == 0) {
+    pid = getpid();
+    msg = "this is child";
+    sleep(3);
+  }
+  else {
+    pid_t pid_wait;
+    int status;
+
+    msg = "this is parent";
+    printf("[%d] waiting child's termination\n", pid);
+#if 1 /* using wait() */
+    pid_wait = wait(&status);
+#endif
+#if 0 /* using waitpid() without WNOHANG */
+    /* Implement code */
+    pid_wait = waitpid(pid_temp, &status, 0); // WNOHANG 사용안할 시 0으로 채운다. wait와 똑같다.
+#endif
+#if 0 /* using waitpid() with WNOHANG */
+    /* Implement code */
+    pid_wait = waitpid(pid_temp, &status, WNOHANG);
+#endif
+    // WNOHANG 사용시에 status는 쓰레기 값이 찍힌다.
+    printf("[%d] pid %d has been terminated with status %#x\n", pid, pid_wait, status);
+  }
+
+  printf("[%d] pid_temp = %d, msg = %s, ppid = %d\n", pid, pid_temp, msg, getppid());
+  printf("[%d] terminted\n", pid);
+
+  return EXIT_SUCCESS;
+}
+```
+
+---------------
+### 좀비 상태
+- 프로세스는 종료되었으나, 프로세스의 정보는 시스템(커널)에 남아있는 상태.
+- 부모 프로세스가 자식 프로세스를 생성시킨 후, 자식 프로세스의 상태에 대해서 자원 회수를 수행해야 한다.
+- 그러나, 부모 프로세스가 자식 프로세스가 소멸된 후, 자원에 대한 회수를 수행하지 못했을 때,
+- 일시적으로 이러한 상태를 **좀비**상태라고 한다.
+
+- 다음 코드의 실행 결과를 보자.
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+
+pid_t pid;
+
+int main(int argc, char **argv)
+{
+  pid_t pid_temp;
+  int i;
+  char *msg = "none";
+
+  printf("[%d] running %s\n", pid = getpid(), argv[0]);
+
+  pid_temp = fork();
+
+  if(pid_temp == -1) {
+    printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
+    return EXIT_FAILURE;
+  }
+  else if(pid_temp == 0) {
+    pid = getpid();
+    msg = "this is child";
+    sleep(3);
+  }
+  else {
+    pid_t pid_wait;
+    int status;
+    char command[64];
+
+    msg = "this is parent";
+
+    sleep(5);
+    sprintf(command, "ps -w");
+    system(command);
+
+    printf("[%d] waiting child's termination\n", pid);
+    pid_wait = wait(&status);
+    printf("[%d] pid %d has been terminated with status %#x\n", pid, pid_wait, status);
+  }
+
+  printf("[%d] pid_temp = %d, msg = %s, ppid = %d\n", pid, pid_temp, msg, getppid());
+  printf("[%d] terminted\n", pid);
+
+  return EXIT_SUCCESS;
+}
+
+// output
+[1183] running ./zombie
+[1184] pid_temp = 0, msg = this is child, ppid = 1183
+[1184] terminted
+  PID USER       VSZ STAT COMMAND
+ 1183 root      1676 S    ./zombie
+ 1184 root         0 Z    [zombie] // 좀비 상태.
+ 1185 root      3220 R    ps -w
+[1183] waiting child's termination
+[1183] pid 1184 has been terminated with status 0
+[1183] pid_temp = 1184, msg = this is parent, ppid = 1147
+[1183] terminted
+```
+
+-----------------
+### 양자, 혹은 고아
+- 부모 프로세스보다 자식 프로세스보다 먼저 종료된 상황.
+  - 이러한 상황에서 고아상태의 process를 kernel이 강제로 PPID를 1로 설정한다.
+  - 즉, init process의 자식 프로세스 상태로 만든다.
+- **좀비 상태** 와 다르게, 이러한 상황은 **상태** 가 아니다.
+- 프로세스 종료시 리소스는 반환 된다.
+- 정보는 kernel에 남아있는데, 이 data는 크지 않다.
+
+- 다음은 예제 코드이다.
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
 
 pid_t pid;
 
@@ -360,26 +512,21 @@ int main(int argc, char **argv)
                 return EXIT_FAILURE;
         }
         else if(pid_temp == 0) {
+                char command[64];
+
                 pid = getpid();
                 msg = "this is child";
-                sleep(3);
+                sleep(5);
+
+                printf("\n");
+                sprintf(command, "ps -w");
+                system(command);
         }
         else {
                 pid_t pid_wait;
-                int status;
 
                 msg = "this is parent";
-                printf("[%d] waiting child's termination\n", pid);
-#if 1 /* using wait() */
-                pid_wait = wait(&status);
-#endif
-#if 0 /* using waitpid() without WNOHANG */
-                /* Implement code */
-#endif
-#if 0 /* using waitpid() with WNOHANG */
-                /* Implement code */
-#endif
-                printf("[%d] pid %d has been terminated with status %#x\n", pid, pid_wait, status);
+                sleep(3);
         }
 
         printf("[%d] pid_temp = %d, msg = %s, ppid = %d\n", pid, pid_temp, msg, getppid());
@@ -387,4 +534,17 @@ int main(int argc, char **argv)
 
         return EXIT_SUCCESS;
 }
+
+
+// output
+[1259] running ./adopt
+[1259] pid_temp = 1260, msg = this is parent, ppid = 1147
+[1259] terminted
+
+  PID USER       VSZ STAT COMMAND
+    1 root      1828 S    init [3]
+ 1260 root      1676 S    ./adopt
+ 1261 root      3220 R    ps -w
+[1260] pid_temp = 0, msg = this is child, ppid = 1
+[1260] terminted
 ```
