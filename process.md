@@ -98,9 +98,149 @@ user      2288  1611  0 11월07 ?      00:00:15 gnome-terminal
   - S : Interruptible sleep
   - T : 멈춤.
   - Z : Zombie
-  - <
-  - N
-  - L
-  - s
-  - l
-  - +
+  - <, N, L, s, l, +
+
+
+-------------
+#### 프로세스 생성
+- `system()`
+- C 프로그램에서 프로세스를 생성하는 방법을 알아본다.
+- 프로세스가 생성되기 위해서는 부모 프로세스를 복재한 다음, 바꿔서 실행하는 일이다.
+- 즉, 프로세스가 새로 생성되는 일은 매우 비효율 적인 일이다.
+
+- **int system(const char *command)**
+  - 실패시 -1, 그 외에는 command return status를 리턴.
+  - return status는 16비트 구성되어 있고, 해석이 필요하다.
+    - exit code 8비트 + 시그널 번호 8비트.
+    - c main함수에서 exit(0)을 호출하면, exit code의 8비트는 0으로 채워진다.
+
+- 다음은 system함수의 호출과 return status에서 exit code와 signal code를 출력한 예제이다.
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+
+int main(void)
+{
+        int ret;
+
+        printf("command = ls -l\n");
+        ret = system("ls -l");
+        printf("-> ret = %#x (%#x)(%#x)\n", ret, WEXITSTATUS(ret), WIFSIGNALED(ret));
+
+        printf("command = wrong command\n");
+        ret = system("wrong command");
+        printf("-> ret = %#x (%#x)(%#x)\n", ret, WEXITSTATUS(ret), WIFSIGNALED(ret));
+
+        printf("command = sleep 3\n");
+        ret = system("sleep 3");
+        printf("-> ret = %#x (%#x)\n", ret, WEXITSTATUS(ret));
+
+        printf("command = sleep 3 &\n");
+        ret = system("sleep 3 &");
+        printf("-> ret = %#x (%#x)\n", ret, WEXITSTATUS(ret));
+
+        return EXIT_SUCCESS;
+}
+
+// 출력 결과
+// root@WT4412:/mnt/nfs# ./system
+command = ls -l
+-rwxr-xr-x    1 root     root          5747 Nov  7  2017 Hello_ARM
+-rwxr-xr-x    1 root     root          6099 Nov  7  2017 a.out
+-rwxr-xr-x    1 root     root          6099 Nov  7  2017 hello
+-rwxr-xr-x    1 root     root          6530 Nov  8  2017 system
+-> ret = 0 (0)(0)
+command = wrong command
+sh: wrong: command not found
+-> ret = 0x7f00 (0x7f)(0)
+command = sleep 3
+-> ret = 0 (0)
+command = sleep 3 &
+-> ret = 0 (0)
+```
+
+
+------------
+#### 프로세스의 교체
+- `exec()`
+  - `execl()`
+  - `execlp()`
+- 현재 프로세스를 새로운 프로세스로 교체한다.
+- 복제 비용이 생기지 않기 때문에, 자원관리에 좀 더 효율적일 수 있다.
+
+```c
+ret = execl("/bin/ls", "ls", "-l", NULL); // execute file
+ret = execlp("ls", "ls", "-l", NULL);     // path에서 경로를 찾아서 실행.
+```
+
+- 다음은 `exec`계열 함수의 결과들이다.
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+pid_t pid;
+int main(int argc, char **argv)
+{
+        int i, ret;
+        printf("[%d] running %s\n", pid = getpid(), argv[0]);
+        ret = execl("/bin/ls", "ls", "-l", NULL);
+        printf("[%d] ret = %d\n", pid, ret);
+        printf("[%d] terminted\n", pid);
+        return EXIT_SUCCESS;
+}
+
+```
+
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+pid_t pid;
+
+int main(int argc, char **argv)
+{
+        int i, ret;
+
+        printf("[%d] running %s\n", pid = getpid(), argv[0]);
+
+        ret = execl("ls", "ls", "-l", NULL);
+        printf("[%d] ret = %d\n", pid, ret);
+
+        printf("[%d] terminted\n", pid);
+
+        return EXIT_SUCCESS;
+}
+```
+
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+pid_t pid;
+
+int main(int argc, char **argv)
+{
+        int i, ret;
+
+        printf("[%d] running %s\n", pid = getpid(), argv[0]);
+
+        ret = execlp("ls", "ls", "-l", NULL);
+
+        printf("[%d] ret = %d\n", pid, ret);
+
+        printf("[%d] terminted\n", pid);
+
+        return EXIT_SUCCESS;
+}
+```
