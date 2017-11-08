@@ -326,6 +326,14 @@ int main(int argc, char **argv)
 
 -----------
 ### 프로세스 대기
+- `wait()`
+- `pid_t wait(int *status)`
+- 기능 : 자식 프로세스 중 아무나 종료되기를 기다림.
+- 리턴 : 성공 시 종료된 자식 프로세스의 PID를, 오류 시, errno 설정 후 -1을 리턴.
+
+- `pid_t waitpid(pid_t pid, int * status, int options)`
+- 기능 : 특정 PID를 가진 자식 프로세스의 종료를 기다림.
+- 리턴 : 성공 시 종료된 자식 프로세스의 PID를 **WNOHANG** 을 사용했는데 자식 프로세스가 종료되지 않은 경우 0을, 에러시 errno 설정 후 -1을 리턴.
 
 ```c
 #include <stdio.h>
