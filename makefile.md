@@ -41,6 +41,9 @@ Makefile
 	- **@** 를 붙이면 터미널로 결과만 출력된다.(명령이 출력되는 것이 아니다.)
 		- **@echo "hello world"** ==> **echo "hello world"**
 
+
+--------------------------
+
 ```cmake
 
 TARGET = hello    // makefile 에서 변수 선언
@@ -59,3 +62,5 @@ clean:
 	@echo "all objects all deleted.."
 
 ```
+
+--------------------------
