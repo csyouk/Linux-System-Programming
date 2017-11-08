@@ -1,0 +1,14 @@
+1. linux로 복사
+example_day2.tar.gz파일을 c:\linux\share 폴더로 복사후
+$cd ~/work
+$sudo cp /media/sf_share/example_day2.tar.gz   .
+$sudo chown user example_day2.tar.gz
+$sudo chgrp user example_day2.tar.gz
+$tar -xzvf example_day2.tar.gz
+$cd example_day2/01_my_lower
+
+2. 코드 작성후 make 하고 
+
+3. 보드에서 실행
+#cd /mnt/nfs
+#./my_lower
