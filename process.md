@@ -499,40 +499,40 @@ pid_t pid;
 
 int main(int argc, char **argv)
 {
-        pid_t pid_temp;
-        int i;
-        char *msg = "none";
+  pid_t pid_temp;
+  int i;
+  char *msg = "none";
 
-        printf("[%d] running %s\n", pid = getpid(), argv[0]);
+  printf("[%d] running %s\n", pid = getpid(), argv[0]);
 
-        pid_temp = fork();
+  pid_temp = fork();
 
-        if(pid_temp == -1) {
-                printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
-                return EXIT_FAILURE;
-        }
-        else if(pid_temp == 0) {
-                char command[64];
+  if(pid_temp == -1) {
+    printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
+    return EXIT_FAILURE;
+  }
+  else if(pid_temp == 0) {
+    char command[64];
 
-                pid = getpid();
-                msg = "this is child";
-                sleep(5);
+    pid = getpid();
+    msg = "this is child";
+    sleep(5);
 
-                printf("\n");
-                sprintf(command, "ps -w");
-                system(command);
-        }
-        else {
-                pid_t pid_wait;
+    printf("\n");
+    sprintf(command, "ps -w");
+    system(command);
+  }
+  else {
+    pid_t pid_wait;
 
-                msg = "this is parent";
-                sleep(3);
-        }
+    msg = "this is parent";
+    sleep(3);
+  }
 
-        printf("[%d] pid_temp = %d, msg = %s, ppid = %d\n", pid, pid_temp, msg, getppid());
-        printf("[%d] terminted\n", pid);
+  printf("[%d] pid_temp = %d, msg = %s, ppid = %d\n", pid, pid_temp, msg, getppid());
+  printf("[%d] terminted\n", pid);
 
-        return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
 
 
