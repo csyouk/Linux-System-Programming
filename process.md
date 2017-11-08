@@ -118,6 +118,10 @@ user      2288  1611  0   11월07    ?         00:00:15    gnome-terminal
     - exit code 8비트 + 시그널 번호 8비트.
     - c main함수에서 exit(0)을 호출하면, exit code의 8비트는 0으로 채워진다.
 
+- `system()` 명령은 시그널을 무시한다.
+- 이 명령어를 통해 생성된 프로세스는 Uninterruptible 상태로 빠질 수 있다.
+- 또한 shell을 통해 프로세스를 생성하므로 비효율적이다.
+
 - 다음은 system함수의 호출과 return status에서 exit code와 signal code를 출력한 예제이다.
 
 ```c
@@ -129,18 +133,25 @@ int main(void)
 {
         int ret;
 
+        // main process는 wait
+        // bash는 process 생성 후, main으로 복귀
         printf("command = ls -l\n");
         ret = system("ls -l");
         printf("-> ret = %#x (%#x)(%#x)\n", ret, WEXITSTATUS(ret), WIFSIGNALED(ret));
 
+        // main process생성에 실패.
         printf("command = wrong command\n");
         ret = system("wrong command");
         printf("-> ret = %#x (%#x)(%#x)\n", ret, WEXITSTATUS(ret), WIFSIGNALED(ret));
 
+        // main process는 wait
+        // 새로 생성된 process는 일 처리 후, 복귀
         printf("command = sleep 3\n");
         ret = system("sleep 3");
         printf("-> ret = %#x (%#x)\n", ret, WEXITSTATUS(ret));
 
+        // main process는 background로 계속 일 처리.
+        // sleep 3 프로세스는 일 프로세스 생성 후 소멸.
         printf("command = sleep 3 &\n");
         ret = system("sleep 3 &");
         printf("-> ret = %#x (%#x)\n", ret, WEXITSTATUS(ret));
