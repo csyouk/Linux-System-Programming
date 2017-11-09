@@ -1,0 +1,11 @@
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+struct stat st;
+
+stat(파일이름, &st) 
+리턴값이 -1 인 경우 해당 파일이 없음
+리턴값이 -1 이 아닌 경우
+st.st_size -> 파일의 사이즈
+st.st_mode -> 파일의 접근권한 (8진수 출력 %o)
