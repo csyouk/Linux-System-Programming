@@ -54,6 +54,13 @@
   - `pathname` : 생성할 파일 이름.
   - `mode` : 생성할 FIFO 파일의 접근 권한.
 
+- mkfifo의 비슷한 예시
+  - 네트워크 socket communication.(서버-클라이언트, local IPC용도.)
+
+
 - 아래는 mkfifo pipe의 예제 코드들이다.
   - [mkfifo 예제 - receiver](./system/EX03-05_fifo/rfifo.c)
   - [mkfifo 예제 - writer](./system/EX03-05_fifo/wfifo.c)
+- Non Blocking은 읽을 데이터가 없어도 기다리지 않는다.
+  - [Non-Blocking 예시 - receiver](./system/EX03-06_fifo_nb/rfifo_nb.c)
+  - [Non-Blocking 예시 - writer](./system/EX03-06_fifo_nb/wfifo.c)
