@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	/* open pipe */ 
+	/* open pipe */
 	ret = pipe(fd_pipe);
 	if(ret == -1) {
 		printf("[%d] error: %s\n", pid, strerror(errno));
@@ -37,11 +37,12 @@ int main(int argc, char **argv)
 	}
 	else if(pid_temp == 0)
 	{
+		// 자식 프로세스
 		printf("[%d] child running\n", pid = getpid());
 
-		/* 1: close fd 0 */
+		/* 1: close fd 0, stdin */
 		close(0);
-		/* 2: duplicate */
+		/* 2: duplicate, set fd 0 as fd_pipe[0] (read) */
 		dup(fd_pipe[0]);
 		/* 3: close fd_pipe[0] */
 		close(fd_pipe[0]);
@@ -51,6 +52,7 @@ int main(int argc, char **argv)
 		execlp("tr", "tr", "a-z", "A-Z", NULL);
 	}
 	else {
+		// 부모 프로세스
 		int status;
 		int i;
 

@@ -10,6 +10,8 @@
 
 ### 선수지식
 - [파일 디스크립터](./File-Descriptor.md)
+- [dup(), dup2()](./dup함수.md)
+
 
 ### pipe()
 - 파이프는 제일 오래된 IPC 방법이다.
@@ -32,55 +34,26 @@
   - fd 파일 디스크립터 id를 가진 파일에 count 바이트 만큼 buf에 내용을 write 한다.
 
 
-```c
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
+- 아래는 pipe의 예제 코드들이다.
+  - [간단한 파이프 구현 - 파이프의 생성 방법](./system/EX03-01_pipe/pipe.c)
+  - [파이프로 부모 자식 간 통신](./system/EX03-02_pipe_fork/pipe_fork.c)
+  - [dup() 함수를 이용한 파이프](./system/EX03-03_dup/dup.c)
 
-#define MAX_BUF 512
 
-pid_t pid;
 
-int main(int argc, char **argv)
-{
-  int fd_pipe[2];
-  int ret;
-  char wbuf[MAX_BUF];
-  char rbuf[MAX_BUF];
 
-  printf("[%d] running %s\n", pid = getpid(), argv[0]);
+### mkfifo()
+- `int mkfifo(const char *pathname, mode_t mode);`
+- 기능
+  - FIFO(이름이 있는 파이프) 파일을 생성.
+  - 프로세스끼리 FIFO파일을 매체로 파이프 통신이 가능하다.
+- 리턴
+  - 성공시 0.
+  - 실패시 errno 설정후 -1 리턴.
+- 인자
+  - `pathname` : 생성할 파일 이름.
+  - `mode` : 생성할 FIFO 파일의 접근 권한.
 
-  /* open pipe */
-  // 파이프를 생성하면서 fd_pipe에 내용을 채운다.
-  ret = pipe(fd_pipe);
-  if(ret == -1) {
-    printf("[%d] error: %s\n", pid, strerror(errno));
-    return EXIT_FAILURE;
-  }
-
-  /* write data to pipe */
-  strcpy(wbuf, "hello");
-  // fd_pipe[1] 에는 pipe write fd가 들어가 있다.
-  ret = write(fd_pipe[1], wbuf, strlen(wbuf)+1);
-  if(ret == -1) {
-    printf("[%d] error: %s\n", pid, strerror(errno));
-    return EXIT_FAILURE;
-  }
-  printf("[%d] wrote %d bytes to pipe [%s]\n", pid, ret, wbuf);
-
-  /* read data from pipe */
-  // fd_pipe[0] 에는 pipe read fd가 들어가 있다.
-  ret = read(fd_pipe[0], rbuf, MAX_BUF);
-  if(ret == -1) {
-    printf("[%d] error: %s\n", pid, strerror(errno));
-    return EXIT_FAILURE;
-  }
-  printf("[%d] read %d bytes from pipe [%s]\n", pid, ret, rbuf);
-
-  printf("[%d] terminated\n", pid);
-
-  return EXIT_SUCCESS;
-}
-```
+- 아래는 mkfifo pipe의 예제 코드들이다.
+  - [mkfifo 예제 - receiver](./system\EX03-05_fifo\rfifo.c)
+  - [mkfifo 예제 - writer](./system\EX03-05_fifo\wfifo.c)

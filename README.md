@@ -14,6 +14,7 @@ Linux System Programming
 
 ### IPC(Inter Proccess Communication)
 - [File Descriptor](./File-Descriptor.md)
+- [dup()](./dup함수.md)
 - [IPC/Pipe](./IPC(Pipe).md)
 - [IPC/Semaphore](./IPC(Semaphore).md)
 - [IPC/Shared Memory](./IPC(SharedMemory).md)
