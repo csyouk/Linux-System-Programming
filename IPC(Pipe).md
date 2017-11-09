@@ -8,40 +8,29 @@
   - Shared Memory
   - Message Queue
 
-
-
-## Pipe
-- 제일 오래된 IPC방법이다.
-
-### File Descriptor(파일 식별자)
-- 각 프로세스는 각자 어떠한 파일을 열어서 사용하고 있는지에 대한 정보를 가지고 있다.
-- 파일 식별자의 0번 1번 2번은 용도가 정해져 있다.
-  - 0번 : `stdin`
-  - 1번 : `stdout`
-  - 2번 : `stderr`
-  - 실제로는 0, 1번은 표준입출력으로 사용되는 **장치** 이다.
-  - 0~2번은 모두 **파일** 이다.
-- 리눅스의 시스템에서는 장치를 접근하던, 파일을 접근 하던 모두 **파일**의 개념으로 접근한다.
-- 프로세스마다 파일 식별자를 관리하기 위한 테이블이 존재한다. 이 테이블을 **파일 식별자 테이블** 이라고 한다.
-- 어떤 프로세스에서 파일을 열면 파일 식별자가 **3** 번 부터 배정된다.
-- `fork()`에 의해 프로세스 복제 시 파일 식별자 테이블이 그대로 복사된다.
-
-
-| fd  | 의미  |
-|---|---|
-| 0  | stdin  |
-| 1  | stdout  |
-| 2  | stderr  |
-| 3  | **...**  |
-| 4  | **...**  |
-
+### 선수지식
+- [파일 디스크립터](./File-Descriptor.md)
 
 ### pipe()
-- 단방향 데이터 채널(데이터가 들어가 있는 임시 메모리 공간)을 생성하는 함수.
+- 파이프는 제일 오래된 IPC 방법이다.
+- 파이프는 프로세스와 프로세스 간 연결통로이다.
 - `int pipe(int pipefd[2]);`
-
+- 단방향 데이터 채널(데이터가 들어가 있는 임시 메모리 공간)을 생성하는 함수.
+  - 리턴
+    - 성공시 0
+    - 실패시 errno 설정후 -1
+  - 인자
+    - `pipe()` 를 호출할 때는 `int pipefd[2];` 를 인자로 넘겨야 한다.
+    - `pipefd[0]` 에는 `pipe`의 **read** file descriptor index를 채운다.
+    - `pipefd[0]` 에는 `pipe`의 **write** file descriptor index를 채운다.
 
 - 다음은 pipe의 예제 코드이다.
+  - 다음 2가지를 알아야 한다.
+  - `ssize_t read(int fd, void *buf, size_t nbytes);`
+    - fd 파일 디스크립터 id를 가진 파일에 nbytes 바이트 만큼 buf에 읽어와서 저장한다.
+  - `ssize_t write(int fd, const void *buf, size_t count);`
+  - fd 파일 디스크립터 id를 가진 파일에 count 바이트 만큼 buf에 내용을 write 한다.
+
 
 ```c
 #include <stdio.h>
@@ -64,6 +53,7 @@ int main(int argc, char **argv)
   printf("[%d] running %s\n", pid = getpid(), argv[0]);
 
   /* open pipe */
+  // 파이프를 생성하면서 fd_pipe에 내용을 채운다.
   ret = pipe(fd_pipe);
   if(ret == -1) {
     printf("[%d] error: %s\n", pid, strerror(errno));
@@ -72,6 +62,7 @@ int main(int argc, char **argv)
 
   /* write data to pipe */
   strcpy(wbuf, "hello");
+  // fd_pipe[1] 에는 pipe write fd가 들어가 있다.
   ret = write(fd_pipe[1], wbuf, strlen(wbuf)+1);
   if(ret == -1) {
     printf("[%d] error: %s\n", pid, strerror(errno));
@@ -80,6 +71,7 @@ int main(int argc, char **argv)
   printf("[%d] wrote %d bytes to pipe [%s]\n", pid, ret, wbuf);
 
   /* read data from pipe */
+  // fd_pipe[0] 에는 pipe read fd가 들어가 있다.
   ret = read(fd_pipe[0], rbuf, MAX_BUF);
   if(ret == -1) {
     printf("[%d] error: %s\n", pid, strerror(errno));
@@ -92,10 +84,3 @@ int main(int argc, char **argv)
   return EXIT_SUCCESS;
 }
 ```
-
-
-## Semaphore
-  - 데이터를 주고받기 위한 방법이 아니다.
-  -
-## Shared Memory
-## Message Queue

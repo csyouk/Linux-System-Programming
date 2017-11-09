@@ -12,6 +12,8 @@ Linux System Programming
 - [Process](./process.md)
 - [Signal](./signal.md)
 
+### IPC(Inter Proccess Communication)
+- [File Descriptor](./File-Descriptor.md)
 - [IPC/Pipe](./IPC(Pipe).md)
 - [IPC/Semaphore](./IPC(Semaphore).md)
 - [IPC/Shared Memory](./IPC(SharedMemory).md)
