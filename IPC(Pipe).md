@@ -55,5 +55,5 @@
   - `mode` : 생성할 FIFO 파일의 접근 권한.
 
 - 아래는 mkfifo pipe의 예제 코드들이다.
-  - [mkfifo 예제 - receiver](./system\EX03-05_fifo\rfifo.c)
-  - [mkfifo 예제 - writer](./system\EX03-05_fifo\wfifo.c)
+  - [mkfifo 예제 - receiver](./system/EX03-05_fifo/rfifo.c)
+  - [mkfifo 예제 - writer](./system/EX03-05_fifo/wfifo.c)
