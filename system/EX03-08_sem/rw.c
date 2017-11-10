@@ -32,14 +32,16 @@ int main(int argc, char **argv)
 		printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
 		return EXIT_FAILURE;
 	}
-	
+
 	for(i=0; i<LOOP_COUNT; i++) {
 		printf("[%d] LOOP %d\n", pid, i);
 
 		sb.sem_num = 0;
 		sb.sem_op = -1;
 		sb.sem_flg = SEM_UNDO;
-		ret = semop(id_sem, &sb, 1);
+		ret = semop(id_sem, &sb, 1); // down operation
+    // ===================== Critical Secion ===========================
+    // File Access
 		if(ret == -1) {
 			printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
 			return EXIT_FAILURE;
@@ -86,7 +88,8 @@ int main(int argc, char **argv)
 		sb.sem_num = 0;
 		sb.sem_op = 1;
 		sb.sem_flg = SEM_UNDO;
-		ret = semop(id_sem, &sb, 1);
+		// ====================== Critical Section ======================
+		ret = semop(id_sem, &sb, 1); // up operation
 		if(ret == -1) {
 			printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
 			return EXIT_FAILURE;
