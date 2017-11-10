@@ -5,6 +5,7 @@
   - `ipcs -l` : ipc show list
   - `ipcs -q` : ipcs show queue list
   - `ipcrm -q MSG_Q_ID` : message queue flush
+  - `ipcrm -Q MSG_Q_KEY` : message queue flush
 
 - 다음은 메세지 큐에서 사용하는 함수들의 목록이다.
   - `msgget()`
