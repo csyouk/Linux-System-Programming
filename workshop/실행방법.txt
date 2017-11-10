@@ -11,4 +11,4 @@ $cd example_day2/01_my_lower
 
 3. 보드에서 실행
 #cd /mnt/nfs
-#./my_lower
+#./my_lower abcCBDF124
