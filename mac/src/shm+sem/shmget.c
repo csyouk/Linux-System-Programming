@@ -7,21 +7,20 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-
+#include <sys/sem.h>
+#include <sys/types.h>
 #include "shm.h"
 
 pid_t pid;
 
 int main(int argc, char **argv)
 {
-	int ret;
+	int ret, i;
 	int id_shm;
+	int sem_id;
+	struct sembuf sb;
 	struct shm_buf *shmbuf;
-	int i;
-	struct timeval tv;
-	time_t start_time;
-	int first = 1;
-	unsigned long cs;
+	unsigned long cs = 0;
 
 	printf("[%d] running %s\n", pid = getpid(), argv[0]);
 
@@ -37,31 +36,49 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	// get semephore
+	sem_id = semget((key_t)KEY_SEM, 1, 0666|IPC_CREAT);
+	if(sem_id == ERROR){
+		printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
+		return EXIT_FAILURE;
+	}
+	
+	
+
 	for(;;) {
-		if(gettimeofday(&tv, NULL) == -1) {
+		sb.sem_num = 0;
+		sb.sem_op = -1;
+		sb.sem_flg = SEM_UNDO;
+		ret = semop(sem_id, &sb, 1);
+		if(ret == ERROR){
 			printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
 			return EXIT_FAILURE;
 		}
-
-		if(first) {
-			first = 0;
-			start_time = tv.tv_sec;
-		}
-		else {
-			if(tv.tv_sec - start_time > TIMEOUT) {
-				shmbuf->status = STATUS_INVALID;
-				break;
-			}
+		
+		if(shmbuf->status != STATUS_VALID) {
+			break;
 		}
 
-		sprintf(shmbuf->buf, "%lu.%06lu", tv.tv_sec, tv.tv_usec);
 		for(i=0, cs=0; i<sizeof(struct shm_buf)-sizeof(unsigned long); i++) {
 			cs += ((unsigned char *)shmbuf)[i];
 		}
-		shmbuf->cs = cs;
-		shmbuf->status = STATUS_VALID;
+		if(shmbuf->cs != cs) {
+			printf("[%d] error: invalid checksum (checksum=%ld, calculated=%ld)\n", pid, shmbuf->cs, cs);
+			break;
+		}
+		
+		printf("[%d] time=%s, checksum=%lu\n", pid, shmbuf->buf, shmbuf->cs);
 
-		usleep(100000);
+		//usleep(1000000);
+		
+		sb.sem_num = 0;
+		sb.sem_op = 1;
+		sb.sem_flg = SEM_UNDO;
+		ret = semop(sem_id, &sb, 1);
+		if(ret == ERROR){
+			printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
+			return EXIT_FAILURE;
+		}
 	}
 
 	ret = shmdt(shmbuf);

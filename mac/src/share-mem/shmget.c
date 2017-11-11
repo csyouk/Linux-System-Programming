@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 		
 		printf("[%d] time=%s, checksum=%lu\n", pid, shmbuf->buf, shmbuf->cs);
 
-		usleep(1000000);
+		//usleep(1000000);
 	}
 
 	ret = shmdt(shmbuf);
