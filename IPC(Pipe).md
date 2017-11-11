@@ -42,7 +42,7 @@
 
 
 
-### mkfifo()
+### mkfifo(), named pipe
 - `int mkfifo(const char *pathname, mode_t mode);`
 - 기능
   - FIFO(이름이 있는 파이프) 파일을 생성.
