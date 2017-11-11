@@ -82,3 +82,15 @@ int main(int argc, char **argv)
 
 	return EXIT_SUCCESS;
 }
+
+/* OUTPUT
+	[14818] running ./pthread_multi
+	[14818] creating thread (g_count = 0)
+	[14818] thread1 started with arg "1000"
+	[14818] waiting to join with a terminated thread
+	[14818] thread2 started with arg "1000"
+	[14818] thread1 counted 1000
+	[14818] thread2 counted 1000
+	[14818] all threads terminated (g_count = 1035)
+	[14818] terminted
+*/

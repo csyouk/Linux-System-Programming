@@ -94,15 +94,3 @@ int main(int argc, char **argv)
 
 	return EXIT_SUCCESS;
 }
-
-/* OUTPUT
-	[15027] running ./pthread_mutex
-	[15027] creating thread (g_count = 0)
-	[15027] waiting to join with a terminated thread
-	[15027] thread1 started with arg "1000"
-	[15027] thread2 started with arg "1000"
-	[15027] thread1 counted 1000
-	[15027] thread2 counted 1000
-	[15027] all threads terminated (g_count = 2000)
-	[15027] terminted
-*/

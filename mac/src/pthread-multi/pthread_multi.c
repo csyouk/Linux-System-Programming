@@ -9,7 +9,6 @@
 
 pid_t pid;
 int g_count;
-pthread_mutex_t g_mutex;
 
 void *thread_func1(void *arg)
 {
@@ -17,12 +16,10 @@ void *thread_func1(void *arg)
 
 	printf("[%d] thread1 started with arg \"%d\"\n", pid, *(int *)arg);
 	for(i=0; i<*(int *)arg; i++) {
-		pthread_mutex_lock(&g_mutex);
 		temp = g_count;
 		usleep(1);
 		g_count = ++temp;
 		count++;
-		pthread_mutex_unlock(&g_mutex);
 		usleep(2);
 	}
 
@@ -36,12 +33,10 @@ void *thread_func2(void *arg)
 
 	printf("[%d] thread2 started with arg \"%d\"\n", pid, *(int *)arg);
 	for(i=0; i<*(int *)arg; i++) {
-		pthread_mutex_lock(&g_mutex);
 		temp = g_count;
 		usleep(1);
 		g_count = ++temp;
 		count++;
-		pthread_mutex_unlock(&g_mutex);
 		usleep(2);
 	}
 
@@ -57,12 +52,6 @@ int main(int argc, char **argv)
 	int n = 1000;
 
 	printf("[%d] running %s\n", pid = getpid(), argv[0]);
-
-	ret = pthread_mutex_init(&g_mutex, NULL);
-	if(ret != 0) {
-		printf("[%d] error: %d (%d)\n", pid, ret, __LINE__);
-		return EXIT_FAILURE;
-	}
 
 	printf("[%d] creating thread (g_count = %d)\n", pid, g_count);
 	ret = pthread_create(&thread_id1, NULL, thread_func1, &n);
@@ -89,20 +78,7 @@ int main(int argc, char **argv)
 	}
 	printf("[%d] all threads terminated (g_count = %d)\n", pid, g_count);
 
-	pthread_mutex_destroy(&g_mutex);
 	printf("[%d] terminted\n", pid);
 
 	return EXIT_SUCCESS;
 }
-
-/* OUTPUT
-	[15027] running ./pthread_mutex
-	[15027] creating thread (g_count = 0)
-	[15027] waiting to join with a terminated thread
-	[15027] thread1 started with arg "1000"
-	[15027] thread2 started with arg "1000"
-	[15027] thread1 counted 1000
-	[15027] thread2 counted 1000
-	[15027] all threads terminated (g_count = 2000)
-	[15027] terminted
-*/

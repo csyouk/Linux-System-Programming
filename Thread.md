@@ -2,6 +2,9 @@
 - 리눅스는 POSIX 표준인 **POSIX Thread(pthread)** 를 사용한다.
   - [POSIX](./알아야할_개념들.md)
 
+## 사용 시 주의사항
+#### pthread 관련 API사용하려면 컴파일시 `-pthread` 옵션을 추가해야 한다.
+
 ## 정의
 - 스레드는 프로세스 내에서 실행되는 흐름의 단위이다.
 - 쓰레드도 그렇고, 프로세스도 그렇고 추상화된 하나의 단위로 생각하면 좋다.
@@ -70,6 +73,16 @@ int  pthread_create(pthread_t  *  thread, pthread_attr_t * attr, void * (*start_
 
 
 ## pthread_join()
-- `int phread_join()`
+- `int phread_join(pthread_t thread, void ** retval)`
+- 스레드의 종료 대기
+- 리턴
+  - 성공시 0
+  - 실패시 에러번호 리턴.
+- 인자
+  - `retval` : 스레드 종료시 `pthread_exit()`가 전달한 데이터이다.
+    - 마찬가지로, 필요 없을시 NULL사용.
 
 ## pthread_cancel()
+
+
+- [예제 코드](./system/EX04-01_pthread/pthread.c)

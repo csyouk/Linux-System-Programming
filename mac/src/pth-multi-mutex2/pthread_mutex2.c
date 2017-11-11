@@ -13,40 +13,44 @@ pthread_mutex_t g_mutex;
 
 void *thread_func1(void *arg)
 {
-	int i, temp, count = 0;
+	int temp, count = 0, max = *(int *)arg;
 
-	printf("[%d] thread1 started with arg \"%d\"\n", pid, *(int *)arg);
-	for(i=0; i<*(int *)arg; i++) {
+	printf("[%d] thread1 started with arg \"%d\"\n", pid, max);
+	for(;;) {
 		pthread_mutex_lock(&g_mutex);
+
+		/* Implement code */
+
 		temp = g_count;
 		usleep(1);
 		g_count = ++temp;
 		count++;
 		pthread_mutex_unlock(&g_mutex);
 		usleep(2);
+		if(g_count >= max) 
+			pthread_exit(NULL);
 	}
-
-	printf("[%d] thread1 counted %d\n", pid, count);
-	pthread_exit(NULL);
 }
 
 void *thread_func2(void *arg)
 {
-	int i, temp, count = 0;
+	int temp, count = 0, max = *(int *)arg;
 
 	printf("[%d] thread2 started with arg \"%d\"\n", pid, *(int *)arg);
-	for(i=0; i<*(int *)arg; i++) {
+	for(;;) {
 		pthread_mutex_lock(&g_mutex);
+
+		/* Implement code */
+
 		temp = g_count;
 		usleep(1);
 		g_count = ++temp;
 		count++;
 		pthread_mutex_unlock(&g_mutex);
 		usleep(2);
+		if(g_count >= max)
+			pthread_exit(NULL);
 	}
-
-	printf("[%d] thread2 counted %d\n", pid, count);
-	pthread_exit(NULL);
 }
 
 int main(int argc, char **argv)
@@ -54,7 +58,7 @@ int main(int argc, char **argv)
 	pthread_t thread_id1, thread_id2;
 	void *thread_ret;
 	int ret;
-	int n = 1000;
+	int n = 200000;
 
 	printf("[%d] running %s\n", pid = getpid(), argv[0]);
 
@@ -94,15 +98,3 @@ int main(int argc, char **argv)
 
 	return EXIT_SUCCESS;
 }
-
-/* OUTPUT
-	[15027] running ./pthread_mutex
-	[15027] creating thread (g_count = 0)
-	[15027] waiting to join with a terminated thread
-	[15027] thread1 started with arg "1000"
-	[15027] thread2 started with arg "1000"
-	[15027] thread1 counted 1000
-	[15027] thread2 counted 1000
-	[15027] all threads terminated (g_count = 2000)
-	[15027] terminted
-*/

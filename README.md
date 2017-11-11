@@ -17,9 +17,18 @@ Linux System Programming
 - [File Descriptor](./File-Descriptor.md)
 - [dup()](./dup함수.md)
 - [IPC/Pipe](./IPC(Pipe).md)
-- [IPC/Semaphore](./IPC(Semaphore).md)
 - [IPC/Shared Memory](./IPC(SharedMemory).md)
+  - **공유메모리를 통해서 프로세스간 데이터 전송시에는 반드시 세마포어 기법을 병행해서 사용해야 한다.**
+  - 프로세스에서의 동기화 방법 ==> Semaphore
 - [IPC/Message Queue](./IPC(MsgQ).md)
 
 ## Thread
 - [Thread](./Thread.md)
+  - 쓰레드에서의 동기화 방법 ==> Mutex
+
+## Synchronization Technic
+- [Mutex](./Mutex(pthread).md)
+- [Semaphore](./Semaphore.md)
+  - System V 방식
+- [Unnamed Semaphore](./UnnamedSemaphore.md)
+  - POSIX 방식
