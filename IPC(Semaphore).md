@@ -64,8 +64,6 @@
     }
 ```
 
-- 다음은
-
 - 다음은 세마포어를 설정하는 프로그램(`semctl`) 코드의 일 부분이다.
 ```c
     // 세마 포어 설정 코드.
@@ -110,7 +108,7 @@
   - `sem_op`는 operation의 행위를 지정한다. -1(down) 혹은 1(up)
   - `sem_flg`는 일반적으로 `SEM_UNDO`를 사용한다.
     - 이렇게 설정하면, 프로세스 종료시 반납하지 못한 세마포어를 자동 반납한다.
-    
+
 ```c
     struct sembuf{
       unsigned short sem_num;
@@ -120,29 +118,22 @@
 ```
 
 - 다음은 세마포어를 제어하는 함수를 보여주는 코드 예시이다.
+
 ```c
+  sb.sem_num = 0;
+  sb.sem_op = -1; // down operation
+  sb.sem_flg = SEM_UNDO;
+  ret = semop(id_sem, &sb, 1); // down operation
+  // ===================== Critical Secion ===========================
 
-		sb.sem_num = 0;
-		sb.sem_op = -1; // down operation
-		sb.sem_flg = SEM_UNDO; //
-		ret = semop(id_sem, &sb, 1); // down operation
-        // ===================== Critical Secion ===========================
-		if(ret == -1) {
-			printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
-			return EXIT_FAILURE;
-		}
 
-        // File Access ....
+  // FILE ACCESS CODE...
 
-		if(c1 != c2) {
-			printf("[%d] error: not same (%d)\n", pid,  __LINE__);
-			return EXIT_FAILURE;
-		}
-		sb.sem_num = 0;
-		sb.sem_op = 1;
-		sb.sem_flg = SEM_UNDO;
-		    // ====================== Critical Section ======================
-		ret = semop(id_sem, &sb, 1); // up operation
+  sb.sem_num = 0;
+  sb.sem_op = 1;
+  sb.sem_flg = SEM_UNDO;
+      // ====================== Critical Section ======================
+  ret = semop(id_sem, &sb, 1); // up operation
 ```
 
 - [세마포어 예제](./system/EX03-08_sem/rw.c)
