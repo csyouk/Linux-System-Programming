@@ -13,6 +13,8 @@
 pid_t pid;
 int g_count;
 pthread_mutex_t g_mutex;
+
+// commented statements are for the Linux
 //sem_t g_sem;
 dispatch_semaphore_t g_sem;
 
