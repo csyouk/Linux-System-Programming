@@ -29,15 +29,46 @@
   - `semop()`
 
 ### semget()
-- 
+- `int semget(key_t key, int nsems, int semflg);`
+- 세마포어 배열을 할당한다.
+- 리턴
+  - 성공시 **세마포어 배열의 ID**
+  - 실패시 errno 설정후 -1
+- 인자
+  - `key` : 세마포어 배열에 접근하기 위한 키.
+  - `nsems` : 필요한 세마포어의 개수. 세마포어 배열 당 최대 세마포어 개수 이하이어야 한다.
+  - `semflg` :
+    - `IPC_CREAT` 사용시 세마포어 배열이 없으면 새로 생성.
+    - `IPC_CREAT | IPC_EXCL` 사용시 해당 세마포어 배열이 있으면 에러.
 
-- [세마포어 예제](./system/EX03-08_sem/rw.c)
-  - 위 예제를 돌리기 전에 **반드시** 세마포어 설정을 해야 한다.
-  - 세마 포어 설정은 [이곳](./system/EX03-08_sem/semctl.c)을 참조한다.
+### semctl()
+- `int semctl(int semid, int semnum, int cmd, ...);`
+- 세마포어를 제어하는 함수.
+- 리턴
+  - 성공시 `cmd` 에 따라 리턴값 다르다.
+  - 실패시 errno 설정후 -1 리턴.
+- 인자
+  - `semid` : 세마 포어 **배열의 아이디**.
+  - `semnum` : **세마 포어 배열내의 세마포어 번호.**
+  - `cmd`
+    - 세마포어 삭제시 : `IPC_RMID`
+    - 세마포어 설정시 : `SETVAL`, `union semun`변수 설정후 인자로 넘김.
+
+- 다음은 세마포어 설정시, 같이 넘겨야 하는 구조체의 프로토타입이다.
+```c
+    union semun{
+      int val;                  // 임계영역을 지날 수 있는 프로세스의 개수.
+      struct semid_ds *buf;
+      unsigned short *array;
+      struct seminfo *__buf;
+    }
+```
+
+- 다음은
 
 - 다음은 세마포어를 설정하는 프로그램(`semctl`) 코드의 일 부분이다.
-
 ```c
+    // 세마 포어 설정 코드.
     if(strcmp(argv[1], "SETVAL") == 0) {
       union semun su;
       su.val = 1; // 세마포어의 개수를 1개로 설정해 놓았다.
@@ -48,7 +79,78 @@
       }
       printf("[%d] SETVAL OK\n", pid);
     }
+
+    // 세마포어 삭제 코드
+    else if(strcmp(argv[1], "IPC_RMID") == 0) {
+      ret = semctl(id_sem, 0, IPC_RMID);
+      if(ret == -1) {
+        printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
+        return EXIT_FAILURE;
+      }
+      printf("[%d] IPC_RMID OK\n", pid);
+    }
 ```
+
+
+### semop()
+- `int semop(int semid, struct sembuf *sops, unsigned nsops);`
+- 세마포어 배열 내 세마포어들의 동작을 제어하는 함수.
+- 리턴
+  - 성공시 0
+  - 실패시 errno 설정후 -1 리턴.
+- 인자
+  - `semid` : 세마 포어 **배열의 아이디**.
+  - `sops` : `struct sembuf`가 요소로 들어가 있는 배열의 내의 요소 시작 주소.
+  - `nsops`
+    - `sops` 부터 시작되는 배열요소의 개수.
+
+- semop를 사용하기 위해서는 반드시 `struct sembuf` 변수를 설정해줘야 한다.
+- 다음은 `sembuf`의 구조체 프로토타입이다.
+  - `sem_num`은 세마포어 배열의 요소 번호를 적는다.
+  - `sem_op`는 operation의 행위를 지정한다. -1(down) 혹은 1(up)
+  - `sem_flg`는 일반적으로 `SEM_UNDO`를 사용한다.
+    - 이렇게 설정하면, 프로세스 종료시 반납하지 못한 세마포어를 자동 반납한다.
+    
+```c
+    struct sembuf{
+      unsigned short sem_num;
+      short          sem_op;
+      short          sem_flg;
+    }
+```
+
+- 다음은 세마포어를 제어하는 함수를 보여주는 코드 예시이다.
+```c
+
+		sb.sem_num = 0;
+		sb.sem_op = -1; // down operation
+		sb.sem_flg = SEM_UNDO; //
+		ret = semop(id_sem, &sb, 1); // down operation
+        // ===================== Critical Secion ===========================
+		if(ret == -1) {
+			printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
+			return EXIT_FAILURE;
+		}
+
+        // File Access ....
+
+		if(c1 != c2) {
+			printf("[%d] error: not same (%d)\n", pid,  __LINE__);
+			return EXIT_FAILURE;
+		}
+		sb.sem_num = 0;
+		sb.sem_op = 1;
+		sb.sem_flg = SEM_UNDO;
+		    // ====================== Critical Section ======================
+		ret = semop(id_sem, &sb, 1); // up operation
+```
+
+- [세마포어 예제](./system/EX03-08_sem/rw.c)
+  - 위 예제를 돌리기 전에 **반드시** 세마포어 설정을 해야 한다.
+  - 세마 포어 설정은 [이곳](./system/EX03-08_sem/semctl.c)을 참조한다.
+  - 실행 명령
+    - `./semctl SETVAL`
+    - `./semctl IPC_RMID`
 
 
 ### Atomic Operation
