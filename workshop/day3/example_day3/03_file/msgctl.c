@@ -6,16 +6,16 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
-#include <sys/sem.h>
+#include <sys/msg.h>
 
-#include "sem.h"
+#include "msg.h"
 
 pid_t pid;
 
 int main(int argc, char **argv)
 {
 	int ret;
-	int id_sem;
+	int id_msg;
 
 	printf("[%d] running %s\n", pid = getpid(), argv[0]);
 	if(argc != 2) {
@@ -23,25 +23,26 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	id_sem = semget((key_t)KEY_SEM, 1, 0666|IPC_CREAT);
-	if(id_sem == -1) {
+	id_msg = msgget((key_t)KEY_MSG, 0666|IPC_CREAT);
+	if(id_msg == -1) {
 		printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
 		return EXIT_FAILURE;
 	}
-	
-	if(strcmp(argv[1], "SETVAL") == 0) {
-		union semun su;
-		su.val = 1;
-		ret = semctl(id_sem, 0, SETVAL, su);
+
+	if(strcmp(argv[1], "IPC_STAT") == 0) {
+		struct msqid_ds dsbuf;
+		ret = msgctl(id_msg, IPC_STAT, &dsbuf);
 		if(ret == -1) {
 			printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
 			return EXIT_FAILURE;
 		}
-		printf("[%d] SETVAL OK\n", pid);
+		printf("[%d] IPC_STAT OK\n", pid);
+		printf("    msg_perm.__key=%#x\n", dsbuf.msg_perm.__key);
+		printf("    msg_perm.mode=%#o\n", dsbuf.msg_perm.mode);
+		printf("    msg_qbytes=%ld\n", dsbuf.msg_qbytes);
 	}
 	else if(strcmp(argv[1], "IPC_RMID") == 0) {
-		union semun su;
-		ret = semctl(id_sem, 0, IPC_RMID, su);
+		ret = msgctl(id_msg, IPC_RMID, 0);
 		if(ret == -1) {
 			printf("[%d] error: %s (%d)\n", pid, strerror(errno), __LINE__);
 			return EXIT_FAILURE;
@@ -49,7 +50,7 @@ int main(int argc, char **argv)
 		printf("[%d] IPC_RMID OK\n", pid);
 	}
 
-	printf("[%d] terminated\n", pid);
+	printf("[%d] terminted\n", pid);
 
 	return EXIT_SUCCESS;
 }
