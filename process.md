@@ -367,6 +367,8 @@ int main(int argc, char **argv)
     - **WNOHANG** 을 사용했는데 자식 프로세스가 종료되지 않은 경우 0 리턴.
     - 에러시 errno 설정 후 -1을 리턴.
   - **WNOHANG** : 매크로 상수
+  - **WNOHANG** : Do not hang if no status is available. return immediately.
+- `wait()`, `waitpid()` 둘다 부모 프로세스가 `block`된 상태에서 자식 프로세스의 종료를 기다린다.
 
 ```c
 #include <stdio.h>
