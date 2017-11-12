@@ -22,6 +22,7 @@ Linux System Programming
   - 프로세스에서의 동기화 방법 ==> Semaphore
 - [IPC/Message Queue](./IPC(MsgQ).md)
 
+
 ## Thread
 - [Thread](./Thread.md)
   - 쓰레드에서의 동기화 방법 ==> Mutex
