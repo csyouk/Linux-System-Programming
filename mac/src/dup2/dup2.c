@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 		printf("[%d] child running\n", pid = getpid());
 
 
-		/* 1: close fd 0 */
+		/* 1: close fd 1 */
 		close(1);
 		/* 2: duplicate */
 		dup(fd_pipe[1]);
