@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <string.h>
 
-#define MAX_BUF 1024
+#define MAX_BUF 512
 
 pid_t pid;
 
@@ -18,12 +18,8 @@ int main(int argc, char **argv)
 
 
 	printf("[%d] running %s\n", pid = getpid(), argv[0]);
-	if(argc < 2) {
-		printf("[%d] usage: %s {str1} {str2} ...\n", pid, argv[0]);
-		return EXIT_FAILURE;
-	}
 
-	/* open pipe */
+	/* open pipe */ 
 	ret = pipe(fd_pipe);
 	if(ret == -1) {
 		printf("[%d] error: %s\n", pid, strerror(errno));
@@ -37,43 +33,43 @@ int main(int argc, char **argv)
 	}
 	else if(pid_temp == 0)
 	{
-		// 자식 프로세스
 		printf("[%d] child running\n", pid = getpid());
 
-		/* 1: close fd 0, stdin */
-		close(0);
-		/* 2: duplicate, set fd 0 as fd_pipe[0] (read) */
-		dup(fd_pipe[0]);
-		/* 3: close fd_pipe[0] */
-		close(fd_pipe[0]);
-		/* 4: close fd_pipe[1] */
-		close(fd_pipe[1]);
 
-		execlp("tr", "tr", "a-z", "A-Z", NULL);
+		/* 1: close fd 0 */
+		close(1);
+		/* 2: duplicate */
+		dup(fd_pipe[1]);
+		/* 3: close fd_pipe[0] */
+		close(fd_pipe[1]);
+		/* 4: close fd_pipe[1] */
+		close(fd_pipe[0]);
+
+		execlp("ls", "ls", "-al", NULL);
 	}
 	else {
-		// 부모 프로세스
 		int status;
 		int i;
 
-		/* close fd_pipe[0] */
-		close(fd_pipe[0]);
-
-		/* write data to pipe */
-		strcpy(wbuf, argv[1]);
-		for(i=2; i<argc; i++) {
-			strcat(wbuf, " ");
-			strcat(wbuf, argv[i]);
-		}
-		ret = write(fd_pipe[1], wbuf, strlen(wbuf)+1);
-		if(ret == -1) {
-			printf("[%d] error: %s\n", pid, strerror(errno));
-			return EXIT_FAILURE;
-		}
-		printf("[%d] wrote %d bytes to pipe [%s]\n", pid, ret, wbuf);
-
 		/* close fd_pipe[1] */
 		close(fd_pipe[1]);
+
+		/* read data from pipe */
+		printf("[%d] reading from pipe\n", pid);
+		for(;;) {
+			ret = read(fd_pipe[0], rbuf, MAX_BUF-1);
+			if(ret == -1) {
+				printf("[%d] error: %s\n", pid, strerror(errno));
+				return EXIT_FAILURE;
+			}
+			if(ret == 0) break;
+			rbuf[ret] = 0;
+			printf("%s", rbuf);
+		}
+		printf("[%d] end of reading\n", pid);
+
+		/* close fd_pipe[0] */
+		close(fd_pipe[0]);
 
 		printf("[%d] waiting child's termination\n", pid);
 		pid_temp = wait(&status);
