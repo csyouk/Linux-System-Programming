@@ -1,4 +1,4 @@
-#if 0
+#if 01
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -10,7 +10,7 @@ pid_t pid;
 
 int main(int argc, char **argv)
 {
-	pid_t pid_temp;	
+	pid_t pid_temp;
 	int i;
 	int num_of_child;
 
@@ -88,7 +88,7 @@ int main(int argc, char **argv){
 }
 #endif
 
-//╫ц╠вЁн а╬гу ╧╝а╕
+//О©╫ц╠вЁО©╫ О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫
 #if 1
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Implement code */
-	
+
 
 	printf("[%d] terminted\n", pid);
 
